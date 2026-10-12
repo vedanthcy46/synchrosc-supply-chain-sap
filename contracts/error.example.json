@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "ACTION_BLOCKED",
+    "message": "This scenario cannot be executed because the supplier is not approved.",
+    "details": {
+      "reason_codes": [
+        "SUPPLIER_NOT_APPROVED"
+      ]
+    },
+    "correlation_id": "corr-example-001"
+  }
+}

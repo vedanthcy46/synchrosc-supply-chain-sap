@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "dataset": "SynchroSC demo synthetic dataset",
+    "version": "1.0",
+    "is_live_data": false,
+    "currency": "INR",
+    "arrival_convention": "start_of_eta_day"
+  },
+  "suppliers": [
+    {
+      "supplier_id": "SUP-A",
+      "name": "Primary Components Co.",
+      "approved": true,
+      "components": [
+        "CMP-201"
+      ],
+      "available_capacity": 2000,
+      "unit_cost": 1000,
+      "currency": "INR",
+      "lead_time_days": 12,
+      "risk_status": "clear"
+    },
+    {
+      "supplier_id": "SUP-B",
+      "name": "Alternate Components Co.",
+      "approved": true,
+      "components": [
+        "CMP-201"
+      ],
+      "available_capacity": 800,
+      "unit_cost": 1080,
+      "currency": "INR",
+      "lead_time_days": 4,
+      "risk_status": "clear"
+    },
+    {
+      "supplier_id": "SUP-X",
+      "name": "Unapproved Emergency Vendor",
+      "approved": false,
+      "components": [
+        "CMP-201"
+      ],
+      "available_capacity": 1000,
+      "unit_cost": 900,
+      "currency": "INR",
+      "lead_time_days": 3,
+      "risk_status": "unknown"
+    }
+  ],
+  "inventory": [
+    {
+      "component_id": "CMP-201",
+      "warehouse_id": "WH-A",
+      "on_hand_qty": 700,
+      "reserved_qty": 200,
+      "daily_demand": 100,
+      "unit": "units"
+    },
+    {
+      "component_id": "CMP-201",
+      "warehouse_id": "WH-B",
+      "on_hand_qty": 400,
+      "reserved_qty": 100,
+      "daily_demand": 0,
+      "unit": "units",
+      "transferable_qty": 300
+    }
+  ],
+  "shipments": [
+    {
+      "shipment_id": "SHP-102",
+      "supplier_id": "SUP-A",
+      "component_id": "CMP-201",
+      "quantity": 800,
+      "origin": "Port A",
+      "destination": "Factory WH-A",
+      "baseline_eta_days": 4,
+      "current_eta_days": 12,
+      "status": "delayed",
+      "transport_mode": "sea",
+      "incremental_expedite_cost": 90000
+    }
+  ],
+  "production_orders": [
+    {
+      "order_id": "PO-5001",
+      "product_id": "PRD-100",
+      "component_requirements": [
+        {
+          "component_id": "CMP-201",
+          "quantity": 300
+        }
+      ],
+      "priority": "critical",
+      "due_in_days": 6,
+      "status": "planned"
+    },
+    {
+      "order_id": "PO-5002",
+      "product_id": "PRD-220",
+      "component_requirements": [
+        {
+          "component_id": "CMP-201",
+          "quantity": 250
+        }
+      ],
+      "priority": "high",
+      "due_in_days": 8,
+      "status": "planned"
+    },
+    {
+      "order_id": "PO-5003",
+      "product_id": "PRD-300",
+      "component_requirements": [
+        {
+          "component_id": "CMP-201",
+          "quantity": 400
+        }
+      ],
+      "priority": "normal",
+      "due_in_days": 10,
+      "status": "planned"
+    }
+  ],
+  "demo_disruption": {
+    "event_type": "shipping_delay",
+    "title": "Critical component shipment delayed",
+    "description": "SHP-102 revised ETA is 12 days from now.",
+    "severity": "high",
+    "source_type": "demo",
+    "source_name": "demo_seed.json",
+    "confidence": 1.0,
+    "affected_shipment_ids": [
+      "SHP-102"
+    ],
+    "evidence": [
+      "ETA changed to +12 days in the scenario fixture"
+    ]
+  },
+  "demo_policy": {
+    "auto_approval_limit_inr": 50000,
+    "execution_mode": "simulation",
+    "unknown_supplier_risk": "blocked"
+  }
+}

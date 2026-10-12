@@ -1,0 +1,15 @@
+{
+  "event_type": "shipping_delay",
+  "title": "Critical component shipment delayed",
+  "description": "SHP-102 revised ETA is 12 days from now.",
+  "severity": "high",
+  "source_type": "demo",
+  "source_name": "demo_seed.json",
+  "confidence": 1.0,
+  "affected_shipment_ids": [
+    "SHP-102"
+  ],
+  "evidence": [
+    "ETA changed to +12 days in the scenario fixture"
+  ]
+}

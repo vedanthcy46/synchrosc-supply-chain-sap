@@ -1,0 +1,52 @@
+{
+  "incident_id": "INC-001",
+  "status": "OPTIONS_READY",
+  "impact": {
+    "component_id": "CMP-201",
+    "available_qty": 500,
+    "daily_demand": 100,
+    "coverage_days": 5,
+    "delayed_shipment_eta_days": 12,
+    "projected_stockout_before_eta": true
+  },
+  "scenarios": [
+    {
+      "scenario_id": "SCN-EXPEDITE",
+      "name": "Expedite current shipment",
+      "incremental_cost": 90000,
+      "currency": "INR",
+      "arrival_days": 4,
+      "feasible": true,
+      "policy_status": "APPROVAL_REQUIRED",
+      "reason_codes": [
+        "COST_ABOVE_AUTO_APPROVAL_LIMIT"
+      ]
+    },
+    {
+      "scenario_id": "SCN-ALT-SUPPLIER",
+      "name": "Buy from approved alternate supplier",
+      "incremental_cost": 64000,
+      "currency": "INR",
+      "arrival_days": 4,
+      "feasible": true,
+      "policy_status": "APPROVAL_REQUIRED",
+      "reason_codes": [
+        "COST_ABOVE_AUTO_APPROVAL_LIMIT"
+      ]
+    },
+    {
+      "scenario_id": "SCN-TRANSFER",
+      "name": "Transfer 300 units from Warehouse B",
+      "incremental_cost": 12000,
+      "currency": "INR",
+      "arrival_days": 2,
+      "feasible": true,
+      "policy_status": "APPROVAL_REQUIRED",
+      "reason_codes": [
+        "RESIDUAL_SHORTAGE_RISK",
+        "ELEVATED_OPERATIONAL_RISK"
+      ],
+      "unmet_demand_units_before_recovery": 400
+    }
+  ]
+}
