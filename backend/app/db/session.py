@@ -7,7 +7,11 @@ from app.core.config import settings
 # Normalize dialect prefix if postgres:// was provided (SQLAlchemy 2.0 requires postgresql://)
 raw_db_url = settings.DATABASE_URL
 if raw_db_url.startswith("postgres://"):
-    db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
+    db_url = raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif raw_db_url.startswith("postgresql://"):
+    # The project installs psycopg2-binary; SQLAlchemy 2.1's default Postgres
+    # driver changed to psycopg 3, so name the installed driver explicitly.
+    db_url = raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 else:
     db_url = raw_db_url
 
@@ -45,5 +49,6 @@ def init_db() -> None:
     import app.models.scenario  # noqa: F401
     import app.models.approval  # noqa: F401
     import app.models.audit  # noqa: F401
+    import app.models.execution  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

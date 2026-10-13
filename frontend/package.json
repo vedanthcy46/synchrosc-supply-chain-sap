@@ -5,25 +5,24 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "test": "vitest"
+    "build": "tsc --noEmit && vite build",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest"
+    "lucide-react": "0.511.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
   },
   "devDependencies": {
-    "tailwindcss": "latest",
-    "@tailwindcss/vite": "latest",
-    "eslint": "latest",
-    "vitest": "latest",
-    "@testing-library/react": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react": "19.0.12",
+    "@types/react-dom": "19.0.4",
+    "typescript": "5.8.3",
+    "vite": "6.4.4"
+  },
+  "overrides": {
+    "rollup": "4.59.0",
+    "postcss": "8.5.23",
+    "nanoid": "3.3.18",
+    "source-map-js": "1.2.2"
   }
 }

@@ -1,8 +1,8 @@
-# SynchroSC — SAP Hackathon Team Starter Kit
+# SynchroSC — Supply Chain Resilience Control Tower
 
 > **Purpose:** Build a trustworthy agentic supply-chain resilience prototype that detects a disruption, analyses business impact, compares recovery plans, routes risky decisions through human approval, executes a simulated action, and verifies the outcome.
 
-This repository is a **documentation-first starter kit**. It defines the agreed architecture, data contracts, API behaviour, ownership boundaries, branch workflow, seed scenario, tests, and demo. The source folders are scaffold placeholders; implementation is intentionally left to the five member branches.
+SynchroSC is a simulated supply-chain recovery control tower. It detects a shipment delay, calculates inventory and production exposure, compares recovery plans, routes risky actions for human approval, simulates an authorized change, and records its verification and audit history. It never writes to a live SAP or supplier system.
 
 ## Read this first
 
@@ -29,26 +29,30 @@ This repository is a **documentation-first starter kit**. It defines the agreed 
 - Assign the five branches shown in `docs/07-git-branching-and-integration.md`.
 - Each member must develop against the endpoint contracts and pass their module tests before opening a PR.
 
-## Local run target (after implementation)
+## Run locally
 
-Backend (from `backend/`):
+Use Python 3.11+ and Node.js 20+.
+
+Backend (PowerShell, from `backend/`):
 
 ```bash
 python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+Copy-Item .env.example .env
 uvicorn app.main:app --reload --port 8000
 ```
 
 Frontend (from `frontend/`):
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-The current kit deliberately does not claim the complete product is implemented yet. These commands become runnable once the team adds the dependencies and modules assigned in the member guides.
+The API uses a seeded SQLite database by default. To use Neon, set `DATABASE_URL` in the ignored `backend/.env` file to the valid PostgreSQL connection string. The database must allow SSL connections. Do not put credentials in source files or commit `.env`.
+
+Open the Vite URL shown in the terminal, then use **Simulate disruption** to run the complete demo. Backend API docs are available at `http://localhost:8000/docs`.
 
 ## Project rules
 

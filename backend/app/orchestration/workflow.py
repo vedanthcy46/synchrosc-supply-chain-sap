@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from app.models.incident import Incident, DisruptionEventRecord, utc_now_iso
 from app.models.scenario import ScenarioRecord
 from app.models.approval import ApprovalRecord
-from app.models.supply_chain import SupplierRecord
 from app.schemas.common import (
     WorkflowState,
     PolicyDisposition,
@@ -21,7 +20,7 @@ from app.schemas.scenario import ScenarioListResponse, RecoveryScenario, Scenari
 from app.orchestration.state_machine import validate_transition
 from app.services.impact_analysis import analyze_impact
 from app.services.option_scoring import generate_scenarios
-from app.services.policy_engine import assess_scenario
+from app.services.policy_engine import assess_scenario, load_policy_context
 from app.services.audit_service import record_audit_event
 
 
@@ -69,12 +68,7 @@ class IncidentOrchestrator:
             raw_scenarios = await generate_scenarios(incident_id=incident_id, impact=impact, db=db)
 
             # 5. Call Member 4: Policy Assessment for each scenario
-            supplier_b = db.query(SupplierRecord).filter(SupplierRecord.supplier_id == "SUP-B").first()
-            context: Dict[str, Any] = {
-                "severity": incident.severity,
-                "supplier_approved": supplier_b.approved if supplier_b else True,
-                "supplier_risk_status": supplier_b.risk_status if supplier_b else "clear",
-            }
+            context = load_policy_context(db, incident)
 
             assessed_scenarios: List[RecoveryScenario] = []
             for scn in raw_scenarios:
@@ -82,6 +76,23 @@ class IncidentOrchestrator:
                 scn.policy_status = assessment["policy_status"]
                 scn.reason_codes = assessment["reason_codes"]
                 assessed_scenarios.append(scn)
+                record_audit_event(
+                    db=db,
+                    incident_id=incident_id,
+                    correlation_id=correlation_id,
+                    event_type="POLICY_EVALUATED",
+                    entity_type="Scenario",
+                    entity_id=scn.scenario_id,
+                    actor_type="agent",
+                    actor_id="policy_engine",
+                    after_state={
+                        "policy_status": scn.policy_status.value,
+                        "reason_codes": scn.reason_codes,
+                        "plan_version": scn.plan_version,
+                    },
+                    reason="Scenario assessed against persisted supplier and disruption facts.",
+                    evidence_refs=[scn.scenario_id],
+                )
 
                 # Persist or update scenario record in database
                 existing_scn = db.query(ScenarioRecord).filter(ScenarioRecord.scenario_id == scn.scenario_id).first()
@@ -187,6 +198,34 @@ class IncidentOrchestrator:
         scenario = db.query(ScenarioRecord).filter(ScenarioRecord.scenario_id == scenario_id).first()
         if not scenario:
             raise ResourceNotFoundError("Scenario", scenario_id)
+        if scenario.incident_id != incident_id:
+            raise ResourceNotFoundError("Scenario", scenario_id)
+
+        # Selection is a trust boundary too: refresh the disposition from current server data.
+        current = RecoveryScenario(
+            scenario_id=scenario.scenario_id,
+            incident_id=scenario.incident_id,
+            name=scenario.name,
+            strategy_type=scenario.strategy_type,
+            actions=scenario.actions,
+            incremental_cost=scenario.incremental_cost,
+            currency=scenario.currency,
+            arrival_days=scenario.arrival_days,
+            unmet_demand_units_before_recovery=scenario.unmet_demand_units_before_recovery,
+            estimated_production_delay_days=scenario.estimated_production_delay_days,
+            feasible=scenario.feasible,
+            feasibility_reasons=scenario.feasibility_reasons,
+            risk_score=scenario.risk_score,
+            rank=scenario.rank,
+            reasoning_summary=scenario.reasoning_summary,
+            policy_status=scenario.policy_status,
+            reason_codes=scenario.reason_codes,
+            plan_version=scenario.plan_version,
+        )
+        assessment = assess_scenario(current, load_policy_context(db, incident))
+        scenario.policy_status = assessment["policy_status"].value
+        scenario.reason_codes = assessment["reason_codes"]
+        db.commit()
 
         # Re-check policy disposition
         if scenario.policy_status == PolicyDisposition.BLOCKED.value:
@@ -249,10 +288,33 @@ class IncidentOrchestrator:
                 "selected_scenario_id": scenario_id,
                 "workflow_status": target_state.value,
                 "approval_id": approval_id,
+                "plan_version": scenario.plan_version,
+                "policy_status": scenario.policy_status,
+                "reason_codes": scenario.reason_codes,
             },
             reason=f"Selected scenario {scenario_id}; disposition: {scenario.policy_status}",
             evidence_refs=[scenario_id] + ([approval_id] if approval_id else []),
         )
+        if approval_id:
+            record_audit_event(
+                db=db,
+                incident_id=incident_id,
+                correlation_id=correlation_id,
+                event_type="APPROVAL_REQUESTED",
+                entity_type="ApprovalRequest",
+                entity_id=approval_id,
+                actor_type="system",
+                actor_id="policy_engine",
+                after_state={
+                    "status": ApprovalStatus.PENDING.value,
+                    "scenario_id": scenario_id,
+                    "plan_version": scenario.plan_version,
+                    "policy_status": scenario.policy_status,
+                    "reason_codes": scenario.reason_codes,
+                },
+                reason=f"Human review required: {', '.join(scenario.reason_codes or [])}",
+                evidence_refs=[scenario_id, approval_id],
+            )
 
         return ScenarioSelectResponse(
             incident_id=incident_id,

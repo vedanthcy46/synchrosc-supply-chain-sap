@@ -1,1 +1,1 @@
-Frontend source scaffold. Member 5 builds typed API client and features here. See docs/member-guides/member-5-frontend-and-qa.md.
+The React control tower is implemented in `app/App.tsx`. It connects to the backend through `VITE_API_BASE_URL`, which defaults to `http://localhost:8000/api`. It supports incident creation and analysis, scenario selection, human approval, simulated execution, and the read-only audit timeline.
